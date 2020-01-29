@@ -1,23 +1,48 @@
 package space.artifacts;
 
-public class SpaceShip {
-    private String   name;
-    private String   transponderId;
-    private int      id;
-    private int      crewCapacity;
-    private long     range;
-    private int      numGuns;
-    private boolean  engagedInBattle;
-    private int      score;
-    private long     timeAliveMs;
-    private Position position;
+import java.util.ArrayList;
+import java.util.List;
+
+public class SpaceShip implements IsSpaceShip, Runnable {
+    private String          name;
+    private String          transponderId;
+    private int             id;
+    private int             crewCapacity;
+    private long            range;
+    private int             numGuns;
+    private boolean         engagedInBattle;
+    private int             score;
+    private long            timeCreated;
+    private Position        position;
+    private PolarCoordinate polarCoordinate;
+    private double          arcSpeed;
+
+    public PolarCoordinate getPolarCoordinate() {
+        return polarCoordinate;
+    }
+
+    public void setPolarCoordinate(PolarCoordinate polarCoordinate) {
+        this.polarCoordinate = polarCoordinate;
+    }
+
+    public double getArcSpeed() {
+        return arcSpeed;
+    }
+
+    public void setArcSpeed(double arcSpeed) {
+        this.arcSpeed = arcSpeed;
+    }
 
     public Position getPosition() {
         return position;
     }
 
     public void setPosition(Position position) {
-        this.position = position;
+        this.position        = position;
+        this.polarCoordinate = new PolarCoordinate();
+        this.polarCoordinate.setRadius(Math.sqrt(Math.pow(position.getX(), 2.0d) + Math.pow(position.getY(), 2.0d)));
+        this.polarCoordinate.setTheta(Math.acos(position.getX() / this.polarCoordinate.getRadius()));
+        this.polarCoordinate.setThetaDegrees(Math.toDegrees(this.polarCoordinate.getTheta()));
     }
 
     public String getName() {
@@ -84,11 +109,28 @@ public class SpaceShip {
         this.score = score;
     }
 
-    public long getTimeAliveMs() {
-        return timeAliveMs;
+    public long getTimeCreated() {
+        return timeCreated;
     }
 
-    public void setTimeAliveMs(long timeAliveMs) {
-        this.timeAliveMs = timeAliveMs;
+    public void setTimeCreated(long timeCreated) {
+        this.timeCreated = timeCreated;
+    }
+
+    @Override
+    public void run() {
+
+
+    }
+
+    private List<PolarCoordinate> getNavPath() {
+        List<PolarCoordinate> polarCoordinates = new ArrayList<>();
+        double angle = 0;
+
+        while (Math.round(angle) <= 360.0d) {
+
+        }
+
+        return polarCoordinates;
     }
 }
