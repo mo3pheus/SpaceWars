@@ -25,15 +25,12 @@ public class Driver {
         try {
             String logFilePath = "";
             configureConsoleLogging(Boolean.parseBoolean(args[0]));
+            //configureLogging(Boolean.parseBoolean(args[0]));
             logger.info(SEPARATOR);
             logger.info("Project properties are loaded. Log file generated for this run = " + logFilePath);
             projectProperties = getProjectProperties(args[1]);
 
-            SpaceShip[] spaceShips = loadSpaceShips(args[1]);
-            for (int i = 0; i < spaceShips.length; i++) {
-                System.out.println(SEPARATOR);
-                System.out.println(SpaceShipFactory.convertToString(spaceShips[i]));
-            }
+            loadSpaceShips(args[1]);
 
         } catch (IOException io) {
             logger.error("Error while reading the project properties file.", io);
@@ -44,7 +41,10 @@ public class Driver {
         List<String> lines      = Files.readAllLines(Paths.get(fileName));
         SpaceShip[]  spaceShips = new SpaceShip[lines.size()];
         for (int i = 0; i < lines.size(); i++) {
-            spaceShips[i] = SpaceShipFactory.generateSpaceShip(lines.get(i), ThreadLocalRandom.current().nextInt(1,30));
+            int radius = ThreadLocalRandom.current().nextInt(2, 30);
+            logger.info("Radius = " + radius);
+            spaceShips[i] = SpaceShipFactory.generateSpaceShip(lines.get(i), radius);
+            spaceShips[i].initiateNavigation();
         }
         return spaceShips;
     }

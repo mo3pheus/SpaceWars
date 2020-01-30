@@ -1,6 +1,11 @@
 package space.artifacts;
 
-public class PolarCoordinate implements Comparable<PolarCoordinate> {
+import org.codehaus.jackson.map.ObjectMapper;
+
+import java.io.IOException;
+import java.io.Serializable;
+
+public class PolarCoordinate implements Comparable<PolarCoordinate>, Serializable {
     double radius;
     double theta;
     double thetaDegrees;
@@ -35,6 +40,16 @@ public class PolarCoordinate implements Comparable<PolarCoordinate> {
             return 0;
         } else {
             return (theta < polarCoordinate.getTheta()) ? -1 : 1;
+        }
+    }
+
+    @Override
+    public String toString() {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(this);
+        } catch (IOException io) {
+            return "";
         }
     }
 }

@@ -1,6 +1,11 @@
 package space.artifacts;
 
-public class Position {
+import org.codehaus.jackson.map.ObjectMapper;
+
+import java.io.IOException;
+import java.io.Serializable;
+
+public class Position implements Serializable {
     int x;
     int y;
 
@@ -26,5 +31,15 @@ public class Position {
 
     public void setY(int y) {
         this.y = y;
+    }
+
+    @Override
+    public String toString() {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.writeValueAsString(this);
+        } catch (IOException io) {
+            return "";
+        }
     }
 }

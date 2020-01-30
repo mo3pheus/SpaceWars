@@ -1,21 +1,40 @@
 package space.artifacts;
 
-import java.util.ArrayList;
-import java.util.List;
+import navigation.NavigationEngine;
+import util.PositionUtil;
 
-public class SpaceShip implements IsSpaceShip, Runnable {
-    private String          name;
-    private String          transponderId;
-    private int             id;
-    private int             crewCapacity;
-    private long            range;
-    private int             numGuns;
-    private boolean         engagedInBattle;
-    private int             score;
-    private long            timeCreated;
-    private Position        position;
-    private PolarCoordinate polarCoordinate;
-    private double          arcSpeed;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+public class SpaceShip implements IsSpaceShip, Runnable, Serializable {
+    public static final Double ARCSPEED_FACTOR = 5.0d;
+
+    private String  name;
+    private String  transponderId;
+    private int     id;
+    private int     crewCapacity;
+    private long    range;
+    private int     numGuns;
+    private boolean engagedInBattle;
+    private int     score;
+    private long    timeCreated;
+    private int     positionIndex;
+    private double  arcSpeed;
+    private boolean firstPass;
+
+    private Position                 position;
+    private PolarCoordinate          polarCoordinate;
+    private List<PolarCoordinate>    orbit;
+    private List<Position>           cartesianOrbit;
+    private ScheduledExecutorService scheduler;
+    private NavigationEngine         navigationEngine;
+
 
     public PolarCoordinate getPolarCoordinate() {
         return polarCoordinate;
@@ -43,6 +62,19 @@ public class SpaceShip implements IsSpaceShip, Runnable {
         this.polarCoordinate.setRadius(Math.sqrt(Math.pow(position.getX(), 2.0d) + Math.pow(position.getY(), 2.0d)));
         this.polarCoordinate.setTheta(Math.acos(position.getX() / this.polarCoordinate.getRadius()));
         this.polarCoordinate.setThetaDegrees(Math.toDegrees(this.polarCoordinate.getTheta()));
+        this.firstPass = true;
+        computeNavPath();
+
+        this.navigationEngine = new NavigationEngine(this);
+        this.scheduler        = Executors.newSingleThreadScheduledExecutor();
+    }
+
+    public void initiateNavigation() {
+        scheduler.scheduleAtFixedRate(navigationEngine, 0l, 20l, TimeUnit.MILLISECONDS);
+    }
+
+    public NavigationEngine getNavigationEngine() {
+        return navigationEngine;
     }
 
     public String getName() {
@@ -117,20 +149,63 @@ public class SpaceShip implements IsSpaceShip, Runnable {
         this.timeCreated = timeCreated;
     }
 
+    /**
+     * This needs to run every 20 ms. or (1000 / ARCSPEED_FACTOR)
+     */
     @Override
     public void run() {
 
 
     }
 
-    private List<PolarCoordinate> getNavPath() {
-        List<PolarCoordinate> polarCoordinates = new ArrayList<>();
-        double angle = 0;
+    public List<PolarCoordinate> getOrbit() {
+        return orbit;
+    }
 
-        while (Math.round(angle) <= 360.0d) {
+    public List<Position> getCartesianOrbit() {
+        return cartesianOrbit;
+    }
 
+    public synchronized int getPositionIndex() {
+        return positionIndex;
+    }
+
+    public synchronized void setPositionIndex(int positionIndex) {
+        this.positionIndex = positionIndex;
+    }
+
+    private void computeNavPath() {
+        orbit          = new ArrayList<>();
+        cartesianOrbit = new ArrayList<>();
+
+        double angle          = 0.0d;
+        double angleIncrement = arcSpeed / ARCSPEED_FACTOR;
+
+        while (angle <= 360.0d) {
+            PolarCoordinate polarCoordinate = new PolarCoordinate();
+            polarCoordinate.setThetaDegrees(angle);
+            polarCoordinate.setTheta(Math.toRadians(angle));
+            polarCoordinate.setRadius(this.polarCoordinate.getRadius());
+            orbit.add(polarCoordinate);
+
+            angle = angle + angleIncrement;
         }
 
-        return polarCoordinates;
+        Collections.sort(orbit);
+
+        for (PolarCoordinate p : orbit) {
+            cartesianOrbit.add(PositionUtil.convertToCartesian(p));
+        }
+
+        if (firstPass) {
+            for (int i = 0; i < orbit.size(); i++) {
+                PolarCoordinate p = orbit.get(i);
+                if (p.getTheta() >= this.polarCoordinate.getTheta()) {
+                    positionIndex = i;
+                    firstPass     = false;
+                    break;
+                }
+            }
+        }
     }
 }

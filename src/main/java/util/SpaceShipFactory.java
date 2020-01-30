@@ -37,11 +37,6 @@ public class SpaceShipFactory {
         return spaceShip;
     }
 
-    public static String convertToString(SpaceShip spaceShip) throws IOException {
-        ObjectMapper objectMapper = new ObjectMapper();
-        return objectMapper.writeValueAsString(spaceShip);
-    }
-
     public static SpaceShip convertToPojo(String jsonString) throws IOException {
         ObjectMapper objectMapper = new ObjectMapper();
         return objectMapper.readValue(jsonString, SpaceShip.class);
